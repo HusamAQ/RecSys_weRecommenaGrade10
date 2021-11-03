@@ -5,5 +5,5 @@ Welcome to our repository for the group assignment of the Recommender Systems Co
 Group Members:
   1. Pascal Anema
   2. Husam Abdelqader
-  3. Sree
-  4. Kati
+  3. Sree Kotala
+  4. Kati Zbytovska
