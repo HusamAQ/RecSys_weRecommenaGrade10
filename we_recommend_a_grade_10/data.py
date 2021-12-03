@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 # FILE PATHS
-DATA_FOLDER = '../kaggle_data'
+DATA_FOLDER = './kaggle_data'
 
 # Restaurants
 RES_ACCEPTS = DATA_FOLDER + '/chefmozaccepts.csv'
@@ -75,7 +75,7 @@ default_res_Profile = select_res_data(DEFAULT_RES_COLUMNS)
 # [user; item; rating] columns with a 0-6 rating (sum aggregate)
 simple_Ratings = Ratings.copy()
 simple_Ratings['sum_column'] = Ratings['rating'] + \
-                               Ratings['food_rating'] + Ratings['service_rating']
+    Ratings['food_rating'] + Ratings['service_rating']
 simple_Ratings = simple_Ratings.rename(
     columns={'userID': 'user', 'placeID': 'item', 'rating': 'general_rating', 'sum_column': 'rating'})
 simple_Ratings = simple_Ratings.drop(columns=["general_rating", "food_rating", "service_rating"])
