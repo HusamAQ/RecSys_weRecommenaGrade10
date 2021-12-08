@@ -1,11 +1,12 @@
 from typing import List
 
 from IPython.core.display import display
+from geopy.distance import distance as geo_distance
 import pandas as pd
 import numpy as np
 
 # FILE PATHS
-DATA_FOLDER = './kaggle_data'
+DATA_FOLDER = '../kaggle_data'
 
 # Restaurants
 RES_ACCEPTS = DATA_FOLDER + '/chefmozaccepts.csv'
@@ -75,7 +76,33 @@ default_res_Profile = select_res_data(DEFAULT_RES_COLUMNS)
 # [user; item; rating] columns with a 0-6 rating (sum aggregate)
 simple_Ratings = Ratings.copy()
 simple_Ratings['sum_column'] = Ratings['rating'] + \
-    Ratings['food_rating'] + Ratings['service_rating']
+                               Ratings['food_rating'] + Ratings['service_rating']
 simple_Ratings = simple_Ratings.rename(
     columns={'userID': 'user', 'placeID': 'item', 'rating': 'general_rating', 'sum_column': 'rating'})
 simple_Ratings = simple_Ratings.drop(columns=["general_rating", "food_rating", "service_rating"])
+
+
+# %% making matrix
+
+def build_matrix():
+    res_coords = res_Profile.copy()
+    res_coords.index = res_coords.placeID
+    res_coords = res_coords.drop(columns=[x for x in res_Profile.columns if x not in ['longitude', 'latitude']])
+    user_coords = user_Profile.copy()
+    user_coords.index = user_coords.userID
+    user_coords = user_coords.drop(columns=[x for x in user_Profile.columns if x not in ['longitude', 'latitude']])
+
+    res_rename = {'latitude': 'res_lat', 'longitude': 'res_lon'}
+    user_rename = {'latitude': 'user_lat', 'longitude': 'user_lon'}
+
+    step1 = Ratings.drop(columns=[x for x in Ratings.columns if "rating" in x])
+    step2 = pd.merge(step1, res_coords.rename(columns=res_rename), on='placeID', right_index=True).sort_index()
+    step3 = pd.merge(step2, user_coords.rename(columns=user_rename), on='userID', right_index=True).sort_index()
+    step3['distance'] = [
+        geo_distance((step3.loc[i].res_lat, step3.loc[i].res_lon), (step3.loc[i].user_lat, step3.loc[i].user_lon)).km
+        for i in step3.index]
+    matrix = step3[['userID', 'placeID', 'distance']]
+    return matrix
+
+
+distance_matrix = build_matrix()
