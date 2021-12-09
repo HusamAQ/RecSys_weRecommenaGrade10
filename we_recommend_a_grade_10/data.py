@@ -1,3 +1,25 @@
+"""
+    Attributes:
+        DATA_FOLDER
+        res_Accepts
+        res_Cuisine
+        res_Hours
+        res_Parking
+        res_Profile
+        user_Cuisine
+        user_Payment
+        user_Profile
+        default_res_Profile
+        default_user_Profile
+        Ratings
+        simple_Ratings
+        user_Profile_clean  : all user-profiles minus '?' values
+        ratings_close_by    : all simple_Ratings made within 100km of the restaurant
+        ratings_minimal     : all simple_Ratings made within 100km from users in user-profile-clean
+        ratings_clean       : all simple_Ratings from users in user-profile-clean
+        distance_matrix
+"""
+
 from typing import List
 
 from IPython.core.display import display
@@ -64,10 +86,10 @@ def select_res_data(profile_columns: List[str] = None) -> pd.DataFrame:
 
 # %% Some default values
 
-DEFAULT_USER_COLUMNS = ['userID', 'latitude', 'longitude', 'smoker', 'drink_level',
-                        'dress_preference', 'marital_status', 'hijos', 'birth_year', 'activity', 'budget']
+DEFAULT_USER_COLUMNS = ['userID', 'latitude', 'longitude', 'drink_level', 'smoker',
+                        'dress_preference', 'budget', 'ambience']
 DEFAULT_RES_COLUMNS = ['placeID', 'latitude', 'longitude',
-                       'name', 'alcohol', 'smoking_area', 'dress_code', 'price']
+                       'name', 'alcohol', 'smoking_area', 'dress_code', 'accessibility', 'price', 'Rambience']
 
 default_user_Profile = select_user_data(DEFAULT_USER_COLUMNS)
 default_res_Profile = select_res_data(DEFAULT_RES_COLUMNS)
@@ -106,3 +128,21 @@ def build_matrix():
 
 
 distance_matrix = build_matrix()
+
+#%% Minimizing dataset further for Vector-Based Methods:
+
+user_Profile_clean = user_Profile.replace('?', np.NAN).dropna()
+ratings_close_by = simple_Ratings.loc[distance_matrix[distance_matrix.distance < 100].index].copy()
+users_dropped = user_Profile.loc[user_Profile.index.drop(user_Profile_clean.index)].userID
+ratings_minimal = ratings_close_by.copy()
+ratings_clean = simple_Ratings.copy()
+for user in users_dropped:
+    ratings_minimal['user'] = ratings_minimal['user'].replace(user, np.NAN)
+    ratings_clean['user'] = ratings_clean['user'].replace(user, np.NAN)
+ratings_minimal = ratings_minimal.dropna()
+ratings_clean = ratings_clean.dropna()
+
+# user_Profile_clean : the user-profiles minus '?' values
+# ratings_close_by : all simple_Ratings made within 100km of the restaurant
+# ratings_minimal : all simple_Ratings made within 100km from users in user-profile-clean
+# ratings_clean : all simple_Ratings from users in user-profile-clean
